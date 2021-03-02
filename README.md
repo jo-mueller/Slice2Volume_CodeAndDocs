@@ -6,4 +6,5 @@ The following functionalities are covered by this repository:
 
 1. Histology: Scripts for bundle registration and image sorting (see subdirectory)
 2. MRI: Scripts for denoising with BM3D, longitudinal registration and image type conversion.
-3. Simulation: Scripts for zeropadding of raw simulation output to match reference CBCT dimensions.
+3. QA: Scripts to auto-generate a LaTeX document with a compilation of all available image data and processing steps for each sample animal.
+4. Simulation: Scripts for zeropadding of raw simulation output to match reference CBCT dimensions.
