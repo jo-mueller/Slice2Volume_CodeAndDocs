@@ -1,3 +1,3 @@
 # ignore MRI denoising directory
-	**/MRI_denoising/
-MRI/MRI_denoising/
+MRI/MRI_denoising/BM3D/
+MRI/MRI_denoising/NIFTI/
