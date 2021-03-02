@@ -1,0 +1,52 @@
+// General settings
+(Transform "SimilarityTransform")
+(MaximumNumberOfIterations 2000)
+(ImagePyramidSchedule 64 64 32 32 16 16 8 8 2 2)
+(NumberOfSpatialSamples 10000)
+(FinalGridSpacingInVoxels 64)
+(Registration "MultiResolutionRegistration")
+(CheckNumberOfSamples "false" )
+(NumberOfResolutions 5)
+
+(SP_a 100000.0 100000.0 10000.0 1000.0 100.0)
+
+(FixedImagePyramid "FixedSmoothingImagePyramid" )
+(MovingImagePyramid "MovingSmoothingImagePyramid" )
+
+// Initial Registration
+(AutomaticTransformInitialization "true")
+(AutomaticTransformInitializationMethod "CenterOfGravity")
+
+// Image sampling
+(ImageSampler "RandomCoordinate" )
+(NewSamplesEveryIteration "true")
+
+(ResultImagePixelType "short")
+(DefaultPixelValue 0)
+
+// Registration algorithm
+(Optimizer "AdaptiveStochasticGradientDescent")
+(WriteTransformParametersEachIteration "false")
+(WriteTransformParametersEachResolution "false")
+(WriteResultImageAfterEachResolution "false")
+(WritePyramidImagesAfterEachResolution "false")
+(FixedInternalImagePixelType "float")
+(MovingInternalImagePixelType "float")
+(UseDirectionCosines "true")
+
+// Interpolation
+(Interpolator "LinearInterpolator" )
+(ResampleInterpolator "FinalNearestNeighborInterpolator")
+
+//Parameter estimation
+(AutomaticParameterEstimation "true")
+(AutomaticScalesEstimation "true")
+(Metric "AdvancedMattesMutualInformation" )
+(NumberOfHistogramBins 32)
+(HowToCombineTransforms "Compose")
+(ErodeMask "false")
+
+// Output control
+(ResultImageFormat "tif")
+(WriteResultImage "true")
+
