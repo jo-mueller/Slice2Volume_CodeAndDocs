@@ -1,0 +1,82 @@
+\documentclass[a4paper,12pt]{scrartcl}
+\usepackage[margin=0.5in]{geometry}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{etoolbox}
+\usepackage{placeins}
+\usepackage{lscape}
+
+\usepackage{authblk}
+\renewcommand\Authfont{\small}
+\renewcommand\Affilfont{\itshape\footnotesize}
+
+\pagestyle{headings}
+\numberwithin{figure}{section}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+
+\setkomafont{title}{\normalfont\bfseries}
+\makeatletter
+\patchcmd{\@maketitle}{\titlefont\huge}{\titlefont\small}{}{}
+\makeatother
+
+\begin{document}
+\input{Title.tex}
+
+\author[1,2,$\dag$]{Johannes Müller}
+\author[1,3,$\dag$]{Theresa Suckert}
+\author[1, 4]{Elke Beyreuther}
+\author[1]{Moritz Schneider}
+\author[5]{Marc Boucsein}
+\author[1, 2]{Elisabeth Bodenstein}
+\author[1, 2]{Liane Stolz-Kieslich}
+\author[1,2,3, 6, 7]{Mechthild Krause}
+\author[1, 3, 8]{Cläre von Neubeck}
+\author[9]{Robert Haase}
+\author[1, 2, 3, 10 $\#$]{Armin Lühr}
+\author[1,3,*,$\#$]{Antje Dietrich}
+
+\affil[1]{OncoRay - National Center for Radiation Research in Oncology, Faculty of Medicine and University Hospital Carl Gustav Carus, Technische Universität Dresden, Helmholtz-Zentrum Dresden-Rossendorf, Dresden, 01309, Germany}
+
+\affil[2]{Helmholtz-Zentrum Dresden-Rossendorf, Institute of Radiooncology - OncoRay, Dresden, 01309, Germany}
+
+\affil[3]{German Cancer Consortium (DKTK), Partner Site Dresden, and German Cancer Research Center (DKFZ), Heidelberg, 69120, Germany}
+
+\affil[4]{Helmholtz - Zentrum Dresden - Rossendorf, Institute of Radiation Physics, Dresden, 01328, Germany}
+
+\affil[5]{Clinical Cooperation Unit Radiation Oncology, German Cancer Research Center (DKFZ), and Department of Radiation Oncology, Heidelberg University Hospital, Heidelberg, 69120, Germany}
+
+\affil[6]{Department of Radiotherapy and Radiation Oncology, Faculty of Medicine and University Hospital Carl Gustav Carus, Technische Universität Dresden, Dresden, Germany}
+
+\affil[7]{National Center for Tumor Diseases (NCT) Dresden, Dresden, 01307, Germany}
+
+\affil[8]{Department of Particle Therapy, University Hospital Essen, University of Duisburg-Essen, Essen, Germany}
+
+\affil[9]{DFG Cluster of Excellence Physics of Life, TU Dresden}
+
+\affil[10]{TU Dortmund, Dortmund, Germany}
+\affil[$\dag$]{these authors share first-authorship}
+\affil[$\#$]{these authors share last-authorship}
+\maketitle
+
+\newpage
+\tableofcontents
+
+\newpage
+\input{CBCT.tex}
+\input{Simulation.tex}
+\input{Atlas.tex}
+\input{MRI.tex}
+\input{Histology.tex}
+
+\end{document}
