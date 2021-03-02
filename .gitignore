@@ -1,2 +1,3 @@
 # ignore MRI denoising directory
 	**/MRI_denoising/
+MRI/MRI_denoising/
