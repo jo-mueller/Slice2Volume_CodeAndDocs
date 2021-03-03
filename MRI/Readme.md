@@ -11,7 +11,7 @@ The functionality used for the denoising can be accessed [here](https://www.cs.t
 We used the command-line registration [Elastix](https://elastix.lumc.nl/)[2,3] for affine registration of MRI images. All denoised T1-weighted images from timepoint t (MRI<sub>t</sub>) were registered with the reference image (MRI<sub>0</sub>). The elastix parameter file is saved at [elastix_parameters.txt](https://github.com/jo-mueller/Slice2Volume_Codebase/blob/main/MRI/MRI_registration/elastix_parameters.txt). The process is called through the Python script [LongitudinalRegistrationMRI.py](https://github.com/jo-mueller/Slice2Volume_Codebase/blob/main/MRI/MRI_registration/LongitudinalRegistrationMRI.py).
 
 Helper scripts:
-* As raw data, dicom slices from all sequences of the same study are thrown into the same directory, [SortMRIdata.py](https://github.com/jo-mueller/Slice2Volume_Codebase/blob/main/MRI/MRI_registration/SortMRIdata.py) groups these into separate folders.
+* As raw data, dicom slices from all sequences of the same study are thrown into the same directory, [SortMRIdata.py](https://github.com/jo-mueller/Slice2Volume_Codebase/blob/main/MRI/MRI_misc/SortMRIdata.py) groups these into separate folders.
 * To get an impression over the longitudinal registration, [View4DMRI.ijm](https://github.com/jo-mueller/Slice2Volume_Codebase/blob/main/MRI/MRI_registration/View4DMRI.ijm) creates a hyperstack of all registered T1/T2-weighted images along the time-axis.
 
 
