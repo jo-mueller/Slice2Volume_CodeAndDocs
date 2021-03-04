@@ -22,12 +22,13 @@ import scipy.ndimage as ndimage
 from scipy.signal import find_peaks
 from scipy.stats import spearmanr
 from scipy.stats import ttest_ind
-import matplotlib.patches as patches
+from matplotlib.patches import Rectangle
 import matplotlib.colors as mcolors
 from decimal import Decimal
 from scipy.ndimage import gaussian_filter
 import subprocess
 from skimage.filters import threshold_triangle
+
 
 from sklearn.metrics import mutual_info_score, normalized_mutual_info_score
 
@@ -776,7 +777,8 @@ def preprocess(Image):
     Image = np.where(Image >= 0, Image, Image + 2**16)
     return (Image - np.min(Image))/(np.max(Image) - np.min(Image))
     
-def create_Histology(Histo_dir, CBCT, dst, boundaries, qt=0.9,):
+def create_Histology(Histo_dir, CBCT, dst, boundaries, qt=0.9,
+                     bundles=True, S2V=True, close_up=True):
     
     Slice_dir = os.path.join(Histo_dir, "Slices")
     Slice_dirs = os.listdir(Slice_dir)
@@ -863,351 +865,365 @@ def create_Histology(Histo_dir, CBCT, dst, boundaries, qt=0.9,):
 # =============================================================================
 #   Bundle registrations
 # =============================================================================
-    # Allocate QA parameters    
-    Q_matrix = np.zeros((len(imagetypes), len(Slice_dirs)))
-    
-    for s, slc_dir in enumerate(tqdm(Slice_dirs, desc="bundle registrations")):
-        path = os.path.join(Slice_dir, slc_dir)
-        file.write("\\subsubsection{{{:s}}}\n".format(latexify(slc_dir)))
+
+    if bundles:
+        # Allocate QA parameters    
+        Q_matrix = np.zeros((len(imagetypes), len(Slice_dirs)))
         
-        # Write raw image data is present
-        file.write("Raw images:\\\\\n")
-        file.write(itemize([x for x in os.listdir(path) if "czi" in x]))
-        
-        # find directories with results from mask registration
-        path_res = os.path.join(path, "result")
-        mask_results = [x for x in os.listdir(path_res) if not "."  in x]
-        file.write("Registered stainings: {:d}/{:d}\n".format(len(mask_results)+1, i+1))
-        
-        # Go through masks of bundle registrations
-        for m_r in mask_results:
-            MovingMask = tf.imread(os.path.join(path_res, m_r, "MovingMask.tif"))
-            TargetMask = tf.imread(os.path.join(path_res, m_r, "TargetMask.tif"))
-            result = tf.imread(os.path.join(path_res, m_r, "result.tif"))
+        for s, slc_dir in enumerate(tqdm(Slice_dirs, desc="bundle registrations")):
+            path = os.path.join(Slice_dir, slc_dir)
+            file.write("\\subsubsection{{{:s}}}\n".format(latexify(slc_dir)))
             
-            staining_m = m_r.split('_to_')[0]
-            staining_m = [(x, i) for i, x in enumerate(imagetypes) if x in staining_m][0]
+            # Write raw image data is present
+            file.write("Raw images:\\\\\n")
+            file.write(itemize([x for x in os.listdir(path) if "czi" in x]))
             
-            # Calculate Jaccard index or mutual information
-            if np.max(TargetMask) == 255:
-                U = result + TargetMask
-                I = np.multiply(result, TargetMask)
+            # find directories with results from mask registration
+            path_res = os.path.join(path, "result")
+            mask_results = [x for x in os.listdir(path_res) if not "."  in x]
+            file.write("Registered stainings: {:d}/{:d}\n".format(len(mask_results)+1, i+1))
+            
+            # Go through masks of bundle registrations
+            for m_r in mask_results:
+                MovingMask = tf.imread(os.path.join(path_res, m_r, "MovingMask.tif"))
+                TargetMask = tf.imread(os.path.join(path_res, m_r, "TargetMask.tif"))
+                result = tf.imread(os.path.join(path_res, m_r, "result.tif"))
                 
-                U[U != 0] = 1
-                I[I != 0] = 1
+                staining_m = m_r.split('_to_')[0]
+                staining_m = [(x, i) for i, x in enumerate(imagetypes) if x in staining_m][0]
                 
-                metric = np.sum(I)/np.sum(U)
-                
-                
-                caption=latexify("Results of registration of "
-                                  "image {:s} (Moving image) to {:s} "
-                                  "(Target image). ".format(m_r.split("_to_")[0],
-                                                            m_r.split("_to_")[1]) +
-                                  "Jaccard-coefficient $= {:.2f}$".format(metric))
-            else:
-                MovingMask = preprocess(MovingMask)
-                TargetMask = preprocess(TargetMask)
-                result = preprocess(result)
-                metric = MutualInformation(result, TargetMask,
-                                            sample_size=50000)
-                # metric2 = MutualInformation2(result, TargetMask)
-                caption=latexify("Results of registration of "
-                                  "image {:s} (Moving image) to {:s} "
-                                  "(Target image). ".format(m_r.split("_to_")[0],
-                                                          m_r.split("_to_")[1]) +
-                                  "$MI_{{norm}}$ = {:.2f}".format(metric))
-            Q_matrix[staining_m[1], s] = metric
-            
-            MovingMask = np.ma.masked_where(MovingMask == 0, MovingMask)
-            TargetMask = np.ma.masked_where(TargetMask == 0, TargetMask)
-            result = np.ma.masked_where(result == 0, result)
-            
-            fig, ax = plt.subplots(nrows=1, ncols=4, figsize=(12,3))
-            
-            ax[0].imshow(MovingMask, cmap='Blues', vmin=0, vmax=np.quantile(MovingMask, qt))
-            ax[1].imshow(result, cmap='Blues', vmin=0, vmax=np.quantile(result, qt))
-            ax[2].imshow(TargetMask, cmap='Oranges', vmin=0, vmax=np.quantile(TargetMask, qt))
-            ax[3].imshow(TargetMask, cmap='Oranges', vmin=0, vmax=np.quantile(TargetMask, qt), alpha=0.5)
-            ax[3].imshow(result, cmap='Blues', vmin=0, vmax=np.quantile(result, qt), alpha=0.5)
-            
-            ax[0].set_title("Moving image")
-            ax[1].set_title("Transf. image")
-            ax[2].set_title("Target image")            
-            ax[3].set_title("Overlaid images")
-            fig.tight_layout()
-            
-            fig_fname_mask = os.path.join(fig_dir, slc_dir + "_" + m_r + ".png")
-            fig.savefig(fig_fname_mask, dpi=150)
-                
-            file.write(latex_figure(fig_fname_mask, caption=caption, subdir="Hist/"))
-            plt.close(fig)
-        file.write("\\FloatBarrier\n")
-    
-    redundant_row = np.where(np.sum(Q_matrix, axis=1) == 0)[0][0]
-    Q_matrix = np.delete(Q_matrix, (redundant_row), axis=0)
-    imagetypes.remove(imagetypes[redundant_row])
-    
-    Q_matrix[Q_matrix == 0]  = np.nan
-    
-    # Make a plot for JC and MI scale indication. This is gonna look cool!
-    cmap = make_colormap([c('blue'), c('orange')])
-    cmap.set_bad('gray')
-    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 3))
-    
-    # JC
-    img = axes[0].imshow(Q_matrix[0,:][np.newaxis, ...], cmap=cmap, vmin=0, vmax=1)
-    plt.colorbar(img, orientation='horizontal', label='Jaccard index', ax=axes[0])
-    axes[0].set_yticks([0])
-    axes[0].set_yticklabels(['HE'])
-    
-    # MI
-    img = axes[1].imshow(Q_matrix[1:,:], cmap = cmap, vmin=0, vmax=1)
-    plt.colorbar(img, orientation='horizontal', label='Mutual information', ax=axes[1])
-    axes[1].set_yticks(np.arange(0, len(imagetypes)-1, 1))
-    axes[1].set_yticklabels(imagetypes[1:])
-    
-    for ax in axes:
-        ax.set_xticks(np.arange(0, len(Slice_dirs), 1))
-        ax.set_xticklabels(Slice_dirs, rotation =45, ha="left")
-        ax.xaxis.set_ticks_position('top')
-        
-    fig.tight_layout()
-    fname_fig_QA = os.path.join(fig_dir, "Quality_matrix.png")
-    fig.savefig(fname_fig_QA, dpi=150)
-    plt.close(fig)
-    
-    caption = latexify("Separate Jaccard index (JC) and normalized mutual information (MI) "
-                        "for every histology bundle and registration step.")
-    file.write(latex_figure(fname_fig_QA, subdir="Hist/", caption=caption))
-    
+                # Calculate Jaccard index or mutual information
+                if np.max(TargetMask) == 255:
+                    U = result + TargetMask
+                    I = np.multiply(result, TargetMask)
                     
-    file.write("Overall quantified intensity-based registration quality:\\newline\n")
-    file.write("Normalized mutual information for intensity-based registrations $MI_{{norm}} = {:.2f} \\pm {:.2f}$, ".format(
-            np.nanmean(Q_matrix[1:, :]), np.nanstd(Q_matrix[1:, :])))
-    file.write("Jaccard-coefficient (JC) for contour-based registrations "
-                "$JC = {:.2f}\\pm{:.2f}$\\newline\n".format(
-                    np.nanmean(Q_matrix[0, :]), np.nanstd(Q_matrix[0, :])))
+                    U[U != 0] = 1
+                    I[I != 0] = 1
+                    
+                    metric = np.sum(I)/np.sum(U)
+                    
+                    
+                    caption=latexify("Results of registration of "
+                                      "image {:s} (Moving image) to {:s} "
+                                      "(Target image). ".format(m_r.split("_to_")[0],
+                                                                m_r.split("_to_")[1]) +
+                                      "Jaccard-coefficient $= {:.2f}$".format(metric))
+                else:
+                    MovingMask = preprocess(MovingMask)
+                    TargetMask = preprocess(TargetMask)
+                    result = preprocess(result)
+                    metric = MutualInformation(result, TargetMask,
+                                                sample_size=50000)
+                    # metric2 = MutualInformation2(result, TargetMask)
+                    caption=latexify("Results of registration of "
+                                      "image {:s} (Moving image) to {:s} "
+                                      "(Target image). ".format(m_r.split("_to_")[0],
+                                                              m_r.split("_to_")[1]) +
+                                      "$MI_{{norm}}$ = {:.2f}".format(metric))
+                Q_matrix[staining_m[1], s] = metric
+                
+                MovingMask = np.ma.masked_where(MovingMask == 0, MovingMask)
+                TargetMask = np.ma.masked_where(TargetMask == 0, TargetMask)
+                result = np.ma.masked_where(result == 0, result)
+                
+                fig, ax = plt.subplots(nrows=1, ncols=4, figsize=(12,3))
+                
+                ax[0].imshow(MovingMask, cmap='Blues', vmin=0, vmax=np.quantile(MovingMask, qt))
+                ax[1].imshow(result, cmap='Blues', vmin=0, vmax=np.quantile(result, qt))
+                ax[2].imshow(TargetMask, cmap='Oranges', vmin=0, vmax=np.quantile(TargetMask, qt))
+                ax[3].imshow(TargetMask, cmap='Oranges', vmin=0, vmax=np.quantile(TargetMask, qt), alpha=0.5)
+                ax[3].imshow(result, cmap='Blues', vmin=0, vmax=np.quantile(result, qt), alpha=0.5)
+                
+                ax[0].set_title("Moving image")
+                ax[1].set_title("Transf. image")
+                ax[2].set_title("Target image")            
+                ax[3].set_title("Overlaid images")
+                fig.tight_layout()
+                
+                fig_fname_mask = os.path.join(fig_dir, slc_dir + "_" + m_r + ".png")
+                fig.savefig(fig_fname_mask, dpi=150)
+                    
+                file.write(latex_figure(fig_fname_mask, caption=caption, subdir="Hist/"))
+                plt.close(fig)
+            file.write("\\FloatBarrier\n")
+        
+        redundant_row = np.where(np.sum(Q_matrix, axis=1) == 0)[0][0]
+        Q_matrix = np.delete(Q_matrix, (redundant_row), axis=0)
+        imagetypes.remove(imagetypes[redundant_row])
+        
+        Q_matrix[Q_matrix == 0]  = np.nan
+        
+        # Make a plot for JC and MI scale indication. This is gonna look cool!
+        cmap = make_colormap([c('blue'), c('orange')])
+        cmap.set_bad('gray')
+        fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 3))
+        
+        # JC
+        img = axes[0].imshow(Q_matrix[0,:][np.newaxis, ...], cmap=cmap, vmin=0, vmax=1)
+        plt.colorbar(img, orientation='horizontal', label='Jaccard index', ax=axes[0])
+        axes[0].set_yticks([0])
+        axes[0].set_yticklabels(['HE'])
+        
+        # MI
+        img = axes[1].imshow(Q_matrix[1:,:], cmap = cmap, vmin=0, vmax=1)
+        plt.colorbar(img, orientation='horizontal', label='Mutual information', ax=axes[1])
+        axes[1].set_yticks(np.arange(0, len(imagetypes)-1, 1))
+        axes[1].set_yticklabels(imagetypes[1:])
+        
+        for ax in axes:
+            ax.set_xticks(np.arange(0, len(Slice_dirs), 1))
+            ax.set_xticklabels(Slice_dirs, rotation =45, ha="left")
+            ax.xaxis.set_ticks_position('top')
+            
+        fig.tight_layout()
+        fname_fig_QA = os.path.join(fig_dir, "Quality_matrix.png")
+        fig.savefig(fname_fig_QA, dpi=150)
+        plt.close(fig)
+        
+        caption = latexify("Separate Jaccard index (JC) and normalized mutual information (MI) "
+                            "for every histology bundle and registration step.")
+        file.write(latex_figure(fname_fig_QA, subdir="Hist/", caption=caption))
+        
+                        
+        file.write("Overall quantified intensity-based registration quality:\\newline\n")
+        file.write("Normalized mutual information for intensity-based registrations $MI_{{norm}} = {:.2f} \\pm {:.2f}$, ".format(
+                np.nanmean(Q_matrix[1:, :]), np.nanstd(Q_matrix[1:, :])))
+        file.write("Jaccard-coefficient (JC) for contour-based registrations "
+                    "$JC = {:.2f}\\pm{:.2f}$\\newline\n".format(
+                        np.nanmean(Q_matrix[0, :]), np.nanstd(Q_matrix[0, :])))
         
         
 # =============================================================================
 #     Slice2Volume
 # =============================================================================
-    N = len(Slice_dirs)
-    file.write("\\subsection{Slice2Volume}\n")
-    S2V_dir_res = os.path.join(Histo_dir, "Warped", "results")
-    S2V_dir_trf = os.path.join(Histo_dir, "Warped", "trafo")
-    
-    n_inv = 0
-    n_fwd = 0
-    for f in os.listdir(S2V_dir_trf):
-        if "inverse" in f and f.endswith('txt'):
-            n_inv += 1
-        elif not "inverse" in f and f.endswith('txt'):
-            n_fwd +=1
-    
-    file.write("Forward transformation files: {:d}/{:d}\\\\\n".format(n_fwd, N))
-    file.write("Inverse transformation files: {:d}/{:d}\\\\\n".format(n_inv, N))
-    
-    # Print S2V config parameters
-    # f_log = os.path.join(S2V_dir_res, "S2V_LogFile.txt")
-    # if os.path.exists(f_log):
-    #     file.write("Used S2V configuration:\\newline\n")
-    #     file.write(txt2latex(f_log))
-            
 
-    # Overlay with CT data
-    for f in os.listdir(S2V_dir_res):
-        if "OutputStack_interpolated_" in f:
-            trnsfd_ch = f.replace("OutputStack_interpolated_", "").split(".")[0]
-            break
-    
-    DAPI = tf.imread(os.path.join(S2V_dir_res, f))
-    DAPI = np.einsum('ijk->ikj', DAPI)
-    
-
-    # sequential DAPI figure to check wrong order of slices - should show here
-    bds = boundaries
-    
-    # find number of first and last non-zero ccoronal slice here
-    idx  = 0
-    flag = True
-    while True:
-        idx += 1
-        img = DAPI[bds[0][0] + idx, bds[1][0]:bds[1][1], bds[2][0]:bds[2][1]]
-        if np.max(img) > 30 and flag:
-            y0 = bds[0][0] + idx
-            flag = False
+    if S2V:
+        N = len(Slice_dirs)
+        file.write("\\subsection{Slice2Volume}\n")
+        S2V_dir_res = os.path.join(Histo_dir, "Warped", "results")
+        S2V_dir_trf = os.path.join(Histo_dir, "Warped", "trafo")
         
-        if np.max(img) == 0 and not flag:
-            y1 = bds[0][0] + idx
-            break
+        n_inv = 0
+        n_fwd = 0
+        for f in os.listdir(S2V_dir_trf):
+            if "inverse" in f and f.endswith('txt'):
+                n_inv += 1
+            elif not "inverse" in f and f.endswith('txt'):
+                n_fwd +=1
+        
+        file.write("Forward transformation files: {:d}/{:d}\\\\\n".format(n_fwd, N))
+        file.write("Inverse transformation files: {:d}/{:d}\\\\\n".format(n_inv, N))
+        
+        # Print S2V config parameters
+        # f_log = os.path.join(S2V_dir_res, "S2V_LogFile.txt")
+        # if os.path.exists(f_log):
+        #     file.write("Used S2V configuration:\\newline\n")
+        #     file.write(txt2latex(f_log))
+                
     
-    slcs = int(np.sqrt(y1 -y0) + 0.5)
-    fig0, axes = plt.subplots(nrows=slcs, ncols=slcs)
+        # Overlay with CT data
+        for f in os.listdir(S2V_dir_res):
+            if "OutputStack_interpolated_" in f:
+                trnsfd_ch = f.replace("OutputStack_interpolated_", "").split(".")[0]
+                break
+        
+        DAPI = tf.imread(os.path.join(S2V_dir_res, f))
+        DAPI = np.einsum('ijk->ikj', DAPI)
+        
     
-    for i, ax in enumerate(np.ravel(axes)):
-        img = DAPI[y0 + i, bds[1][0]:bds[1][1], bds[2][0]:bds[2][1]]
-        ax.imshow(img, cmap='inferno', vmax=3000)
-        ax.axis('off')
-    fig0.tight_layout()
-    fig_sequential_fname = os.path.join(fig_dir, "S2V_sequential.png")
-    fig0.savefig(fig_sequential_fname, dpi=150)
-    
-    caption=("Sequence of coronal DAPI images that were transformed "
-              "with Slice2Volume. This view allows to evaluate the "
-              "consistency of subsequent slices.")
-    file.write(latex_figure(fig_sequential_fname, subdir="Hist/", caption=caption))
-    plt.close(fig0)
-    
-    DAPI = np.ma.masked_where(DAPI == 0, DAPI)    
-    fig, args  = multiview_overlay(CBCT, DAPI, cmap1='gray', cmap2='jet',
-                                    Title1="CBCT", Title2="DAPI", show_cross=True,
-                                    alpha=0.7, vmin1=-500, vmax1=300,
-                                    vmin2 = 20, vmax2=1500)
-    fig_fname = os.path.join(fig_dir, 'S2V_overlay.png')
-    fig.savefig(fig_fname, dpi=150)
-    plt.close(fig)
-    
-    
-    caption = ("Overlay of downsampled and transformed histological image "
-                "({:s}) and CBCT".format(latexify(trnsfd_ch)))
-    file.write(latex_figure(fig_fname, subdir="Hist/", caption=caption))
-    file.write('\\FloatBarrier\n')
+        # sequential DAPI figure to check wrong order of slices - should show here
+        bds = boundaries
+        
+        # find number of first and last non-zero ccoronal slice here
+        idx  = 0
+        flag = True
+        while True:
+            idx += 1
+            img = DAPI[bds[0][0] + idx, bds[1][0]:bds[1][1], bds[2][0]:bds[2][1]]
+            if np.max(img) > 30 and flag:
+                y0 = bds[0][0] + idx
+                flag = False
+            
+            if np.max(img) == 0 and not flag:
+                y1 = bds[0][0] + idx
+                break
+        
+        slcs = int(np.sqrt(y1 -y0) + 0.5)
+        fig0, axes = plt.subplots(nrows=slcs, ncols=slcs)
+        
+        for i, ax in enumerate(np.ravel(axes)):
+            img = DAPI[y0 + i, bds[1][0]:bds[1][1], bds[2][0]:bds[2][1]]
+            ax.imshow(img, cmap='inferno', vmax=3000)
+            ax.axis('off')
+        fig0.tight_layout()
+        fig_sequential_fname = os.path.join(fig_dir, "S2V_sequential.png")
+        fig0.savefig(fig_sequential_fname, dpi=150)
+        
+        caption=("Sequence of coronal DAPI images that were transformed "
+                  "with Slice2Volume. This view allows to evaluate the "
+                  "consistency of subsequent slices.")
+        file.write(latex_figure(fig_sequential_fname, subdir="Hist/", caption=caption))
+        plt.close(fig0)
+        
+        DAPI = np.ma.masked_where(DAPI == 0, DAPI)    
+        fig, args  = multiview_overlay(CBCT, DAPI, cmap1='gray', cmap2='jet',
+                                        Title1="CBCT", Title2="DAPI", show_cross=True,
+                                        alpha=0.7, vmin1=-500, vmax1=300,
+                                        vmin2 = 20, vmax2=1500)
+        fig_fname = os.path.join(fig_dir, 'S2V_overlay.png')
+        fig.savefig(fig_fname, dpi=150)
+        plt.close(fig)
+        
+        
+        caption = ("Overlay of downsampled and transformed histological image "
+                    "({:s}) and CBCT".format(latexify(trnsfd_ch)))
+        file.write(latex_figure(fig_fname, subdir="Hist/", caption=caption))
+        file.write('\\FloatBarrier\n')
     
 # =============================================================================
 #     Close-up staining collage
 # =============================================================================
 
-    file.write("\\subsection{Histology close-up}\n")
-    
-    # go through slice assignment overview until a slice with HE is found
-    offset = 0
-    while True:
-        # go through S2V slice assignment overview file
-        with open (os.path.join(Histo_dir, 'Warped', 'results',
-                                'SliceAssignment_Overview.txt')) as S2V_out:
-    
-            for row in reversed(list(S2V_out)):
-                info = row.split('\t')
-                slc = int(info[-1][:-1])
-                plane = os.path.normpath(info[1]).split('\\')  # extract image location (XXXX_Scene_Y)
-                if slc <= args['cutplanes'][0] - offset:
-                    break
-    
-        plane = [x for x in plane if "Scene" in x][0]
+    if close_up:
+        file.write("\\subsection{Histology close-up}\n")
         
-        print('Making close-up for section ' + plane)
+        # go through slice assignment overview until a slice with all stainings
+        offset = 0
+        while True:
+            # go through S2V slice assignment overview file
+            with open (os.path.join(Histo_dir, 'Warped', 'results',
+                                    'SliceAssignment_Overview.txt')) as S2V_out:
         
-        # Find all tifs
-        dir_images = os.path.join(Histo_dir, 'Slices', plane, 'result')
-        imgs = [x for x in os.listdir(dir_images) if x.endswith('tif')]
-        imgs = [x for x in imgs if 'transformed_DAPI' not in x]  # remove transformed DAPI
-        
-        # check if HE is in list of images
-        if any(['HE' in x for x in imgs]):
-            L = len(imgs) - 2
-        else:
-            L = 0
-            offset = offset - 1
+                for row in reversed(list(S2V_out)):
+                    info = row.split('\t')
+                    slc = int(info[-1][:-1])
+                    plane = os.path.normpath(info[1]).split('\\')  # extract image location (XXXX_Scene_Y)
+                    if slc <= args['cutplanes'][0] - offset:
+                        break
             
-        if L != 0:
-            break
+            # Parse plane from text file
+            plane = [x for x in plane if "Scene" in x][0]
+            
+            # FInd all raw images
+            dir_raw = os.path.join(Histo_dir, 'Slices', plane)
+            imgs = [x for x in os.listdir(dir_raw) if x.endswith('czi')]
+            
+            if len(imgs) != len(imagetypes):
+                offset = offset + 1
+                continue
+            
+            # Find all tifs
+            dir_images = os.path.join(Histo_dir, 'Slices', plane, 'result')
+            imgs = [x for x in os.listdir(dir_images) if x.endswith('tif')]
+            imgs = [x for x in imgs if 'transformed_DAPI' not in x]  # remove transformed DAPI
+            
+            # check if HE is in list of images
+            if any(['HE' in x for x in imgs]):
+                L = len(imgs) - 2
+                print('Making close-up for section ' + plane)
+            else:
+                L = 0
+                offset = offset + 1
+                
+            if L != 0:
+                break
+            
+        # make random 1000x1000 ROIs in DAPI image
+        DAPI = tf.imread(os.path.join(dir_images, [x for x in imgs if 'DAPI' in x][0]))
         
-    # make random 1000x1000 ROIs in DAPI image
-    DAPI = tf.imread(os.path.join(dir_images, [x for x in imgs if 'DAPI' in x][0]))
-    size = 1000
+        # ROI locations
+        size = 1000
+        locations = [(DAPI.shape[1]//3, DAPI.shape[0]//2),  #(y, x)
+                     (2*DAPI.shape[1]//3, DAPI.shape[0]//2)]  #(y, x)
+        
+        # create plots for close up views
+        fig_close_up = []
+        for loc in locations:
+            W = 6
+            H = int(np.ceil(L/4))
 
-    locations = [(DAPI.shape[0]//2, DAPI.shape[1]//3),
-                 (DAPI.shape[0]//2, 2*DAPI.shape[1]//3)]
-    
-    fig_whole = plt.figure(figsize=(int(np.ceil(L/4))*2,
-                                    int(np.ceil(L/4))*2))
-    gs_whole = fig.add_gridspec(int(np.ceil(L/4)), 4)
-    flag = True
-    
-    
-    for n, loc in enumerate(locations):
-        rect = patches.Rectangle((loc[0] - size//2,
-                                  loc[1] - size//2), size, size,
-                                 linewidth=1, edgecolor='r', facecolor='none')
-        fig = plt.figure(figsize=(16, 6))
-        gs = fig.add_gridspec(L//4, 6)
-        ax = fig.add_subplot(gs[:, :2])
-        cmap, vmin, vmax = get_cmap('DAPI', DAPI[::4, ::4])
-        ax.imshow(DAPI, cmap=cmap, vmin=vmin, vmax=vmax)
-        ax.axis('off')
-        ax.set_title('DAPI: whole brain')
-    
-        # Add the patch to the Axes
-        ax.add_patch(rect)
-    
-        # Go through all images at this plane and display on figure
+            fig = plt.figure(figsize=(W*3, H*3))
+            gs = fig.add_gridspec(H, W)            
+            fig_close_up.append(fig)
+            
+            # Show DAPI overview:
+            rect = Rectangle((loc[1], loc[0]), size, size,
+                             linewidth=1, edgecolor='r', facecolor='none')
+            ax = fig.add_subplot(gs[:, :2])
+            cmap, vmin, vmax = get_cmap('DAPI', DAPI[::4, ::4])
+            ax.imshow(DAPI, cmap=cmap, vmin=vmin, vmax=vmax)
+            ax.add_patch(rect)
+            ax.axis('off')
+            ax.set_title('DAPI: whole brain')
+        
+        # iterate over all tif images in result folder
         i = 0
-        for f_img in tqdm(imgs, desc='Detail at location {:d}'.format(n)):
+        for f_img in tqdm(imgs, desc='Showing stainings'):
             
             # no doubles of DAPI
             if "transformed_DAPI" in f_img:
                 continue
             
-            # HE only on one image (not as blue/red/green channel)
+            # combine HE into single image (not as blue/red/green channel)
             f = os.path.join(dir_images, f_img)
             if "_HE" in f_img:
                 if "HE_R" in f_img:
                     R = tf.imread(f)
                     G = tf.imread(f.replace("HE_R", "HE_G"))
                     B = tf.imread(f.replace("HE_R", "HE_B"))
-                    
                     whole = np.stack([preprocess(R),
                                       preprocess(G),
                                       preprocess(B)], axis=2)
-                    patch = whole[loc[0] - size//2:loc[0] + size//2,
-                                  loc[1] - size//2:loc[1] + size//2]
                 else:
                     continue
     
             else:
                 whole = tf.imread(f)
-                patch = whole[loc[0] - size//2:loc[0] + size//2,
-                              loc[1] - size//2:loc[1] + size//2]
                 
-            ax = fig.add_subplot(gs[int(i/4), i%4 + 2])  # +2 because DAPI whole section image is on this figure, too
+            # Raw name of staining type from filename
+            S_name = f_img.split('.')[0].replace('transformed_', '').split('_')[0]
+                    
+            # Make whole-section image for this staining
             cmap, vmin, vmax = get_cmap(f_img, whole[::4,::4])
-            ax.imshow(patch, cmap=cmap, vmin=vmin, vmax=vmax)
-            ax.axis('off')
-            ax.set_title(f_img)
+            fig1, ax1 = plt.subplots(figsize=(15, 15*whole.shape[0]/
+                                                      whole.shape[1]))
+            ax1.imshow(whole[::4,::4], cmap=cmap, vmin=vmin, vmax=vmax)
+            ax1.axis('off')
             
-            # Make a single whole-staining collage as addition to the detail views
-            # Whole-staining images are shown downsampled by factor 4
-            if flag:
-                ax = fig_whole.add_subplot(gs_whole[i//4, i%4])
-                ax.imshow(whole[::4,::4], cmap=cmap, vmin=vmin, vmax=vmax)
+            # save and write to TeX
+            fname_fig1 = os.path.join(fig_dir, 'Whole_{:s}.png'.format(S_name))
+            fig1.savefig(fname_fig1, dpi=350)
+            caption = latexify('{:s}-staining from plane {:s}'.format(S_name, plane))
+            file.write(latex_figure(fname_fig1, subdir="Hist/", caption=caption))
+            plt.close(fig1)
+            
+            # Make close up collages
+            for n, loc in enumerate(locations):
+                
+                # Add closeups of stainings to previously created overview
+                patch = whole[loc[0]:loc[0] + size, loc[1]:loc[1] + size]
+                X = i%4 + 2  # +2 because DAPI whole section image is on this figure, too
+                Y = i//4
+                ax = fig_close_up[n].add_subplot(gs[Y, X])  
+                cmap, vmin, vmax = get_cmap(f_img, whole[::4,::4])
+                ax.imshow(patch, cmap=cmap, vmin=vmin, vmax=vmax)
                 ax.axis('off')
-                ax.set_title(f_img.replace('transformed_', ''))
-            i += 1
+                ax.set_title(S_name)
             
-        # save whole-slide overview only on first pass
-        if flag:
-            # print whole view
-            fname_fig_whole = os.path.join(fig_dir, 'Histology_whole.png')
-            fig_whole.savefig(fname_fig_whole, dpi=250)
-            caption = ('Whole-section images of the various co-aligned stainings.')
-            file.write(latex_figure(fname_fig_whole, subdir="Hist/", caption=caption))
-            plt.close(fig_whole)
-        flag = False
-
+            # increase location index counter for next staining
+            i += 1
         
-        # finalize layout
-        fig.tight_layout()
-        fig_fname = os.path.join(fig_dir, 'Histology_detail_loc{:d}.png'.format(n))
-        fig.savefig(fig_fname, dpi=250)
-        
-        caption = ('Selection of image details of the various co-aligned '
-                   'stainings. The position of the image detail is indicated '
-                   'by the red rectangle in the whole-brain DAPI image. '
-                   'The selected section for this overview was {:s}.'.format(
-                       latexify(plane)))
-        file.write(latex_figure(fig_fname, subdir="Hist/", caption=caption))
-        plt.close(fig)
+        for i, fig in enumerate(fig_close_up):
+            fig.tight_layout()
+            fig_fname = os.path.join(fig_dir, 'Histology_detail_loc{:d}.png'.format(i))
+            fig.savefig(fig_fname, dpi=350)
+            caption = ('Selection of image details of the various co-aligned '
+                       'stainings. The position of the image detail is indicated '
+                       'by the red rectangle in the whole-brain DAPI image. '
+                       'The selected section for this overview was {:s}.'.format(
+                           latexify(plane)))
+            file.write(latex_figure(fig_fname, subdir="Hist/", caption=caption))
+            plt.close(fig)
 
     file.close()
 
@@ -1226,8 +1242,8 @@ if __name__ == '__main__':
     for mouse in mice:
         
         # Let's only do this mouse
-        # if mouse != "P2A_C3H_M5":
-        #     continue
+       # if mouse != "P2A_C3H_M3":
+       #     continue
         # else:
         #     continue
         
@@ -1277,9 +1293,10 @@ if __name__ == '__main__':
         create_Title(mouse, local_tex_dir)
         # create_CBCT(CBCT, local_tex_dir, cutplanes=cutplanes)
         boundaries = create_Atlas(Atlas_dir, CBCT, local_tex_dir, cutplanes=cutplanes)
-        create_DoseLET(Dose_dir, CBCT, local_tex_dir, cutplanes=cutplanes, mouse=mouse)
+        # create_DoseLET(Dose_dir, CBCT, local_tex_dir, cutplanes=cutplanes, mouse=mouse)
         # create_MRI(MRI_dir, CBCT, local_tex_dir, cutplanes, boundaries)
-        create_Histology(Histo_dir, CBCT, local_tex_dir, boundaries=boundaries)
+        create_Histology(Histo_dir, CBCT, local_tex_dir, boundaries=boundaries,
+                         bundles=False)
         
         # Compile tex file
         os.chdir(local_tex_dir)
