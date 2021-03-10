@@ -10,6 +10,7 @@ These overview protocols can then be used for QA.
 """
     
 
+import copy
 import os
 import shutil
 import numpy as np
@@ -20,11 +21,9 @@ from functools import partial
 from tqdm import tqdm
 import scipy.ndimage as ndimage
 from scipy.signal import find_peaks
-from scipy.stats import spearmanr
 from scipy.stats import ttest_ind
 from matplotlib.patches import Rectangle
 import matplotlib.colors as mcolors
-from decimal import Decimal
 from scipy.ndimage import gaussian_filter
 import subprocess
 from skimage.filters import threshold_triangle
@@ -59,7 +58,7 @@ def get_cmap(name, image):
     """
     if 'DAPI' in name:
         cmap = make_colormap([c('black'), c('blue')])
-        vmin = threshold_triangle(image)
+        vmin = np.quantile(image, 0.5)
         vmax = np.quantile(image, 0.95)
     elif 'HE' in name:
         cmap = None
@@ -71,15 +70,15 @@ def get_cmap(name, image):
         vmax = np.quantile(image, 0.95)
     elif 'GFAP' in name:
         cmap = make_colormap([c('black'), c('green')])
-        vmin = threshold_triangle(image)
+        vmin = np.quantile(image, 0.6)
         vmax = np.quantile(image, 0.98)
     elif 'Iba1' in name:
         cmap = 'YlOrBr_r'
-        vmin = np.quantile(image, 0.4)
+        vmin = np.quantile(image, 0.5)
         vmax = np.quantile(image, 0.98)
     elif 'Nestin' in name:
         cmap = make_colormap([c('black'), c('cyan')])
-        vmin = threshold_triangle(image)
+        vmin = np.quantile(image, 0.6)
         vmax = np.quantile(image, 0.98)
     elif 'Ki67' in name:
         cmap = make_colormap([c('black'), c('orange')])
@@ -87,7 +86,7 @@ def get_cmap(name, image):
         vmax = np.quantile(image, 0.999)        
     elif 'NeuN' in name:
         cmap = 'PuBuGn_r'
-        vmin = threshold_triangle(image)
+        vmin = np.quantile(image, 0.55)
         vmax = np.quantile(image, 0.98)
     elif 'Cas3' in name:
         cmap = make_colormap([c('black'), c('purple')])
@@ -482,7 +481,7 @@ def create_DoseLET(Dose_dir, CBCT, dst, cutplanes, mouse=None):
     f = os.path.join(dst, "Simulation.tex")
     with open(f, 'wt') as file:
         file.write("\\section{Simulation image data}\n")
-        file.write('Received dose (mean dose within $0.9\\cdot D_{max}$): ' +
+        file.write('Received dose (mean dose within $0.8\\cdot D_{max}$): ' +
                    latexify(dose_dict[mouse]))
         file.write(latex_figure(fig_fname_dose, caption=caption_dose))
         file.write(latex_figure(fig_fname_LET, caption=caption_LET))
@@ -949,7 +948,8 @@ def create_Histology(Histo_dir, CBCT, dst, boundaries, qt=0.9,
         
         redundant_row = np.where(np.sum(Q_matrix, axis=1) == 0)[0][0]
         Q_matrix = np.delete(Q_matrix, (redundant_row), axis=0)
-        imagetypes.remove(imagetypes[redundant_row])
+        IT = copy.deepcopy(imagetypes)
+        IT.remove(IT[redundant_row])
         
         Q_matrix[Q_matrix == 0]  = np.nan
         
@@ -967,8 +967,8 @@ def create_Histology(Histo_dir, CBCT, dst, boundaries, qt=0.9,
         # MI
         img = axes[1].imshow(Q_matrix[1:,:], cmap = cmap, vmin=0, vmax=1)
         plt.colorbar(img, orientation='horizontal', label='Mutual information', ax=axes[1])
-        axes[1].set_yticks(np.arange(0, len(imagetypes)-1, 1))
-        axes[1].set_yticklabels(imagetypes[1:])
+        axes[1].set_yticks(np.arange(0, len(IT)-1, 1))
+        axes[1].set_yticklabels(IT[1:])
         
         for ax in axes:
             ax.set_xticks(np.arange(0, len(Slice_dirs), 1))
@@ -1090,6 +1090,7 @@ def create_Histology(Histo_dir, CBCT, dst, boundaries, qt=0.9,
         # go through slice assignment overview until a slice with all stainings
         offset = 0
         while True:
+            
             # go through S2V slice assignment overview file
             with open (os.path.join(Histo_dir, 'Warped', 'results',
                                     'SliceAssignment_Overview.txt')) as S2V_out:
@@ -1104,7 +1105,7 @@ def create_Histology(Histo_dir, CBCT, dst, boundaries, qt=0.9,
             # Parse plane from text file
             plane = [x for x in plane if "Scene" in x][0]
             
-            # FInd all raw images
+            # Find all raw images
             dir_raw = os.path.join(Histo_dir, 'Slices', plane)
             imgs = [x for x in os.listdir(dir_raw) if x.endswith('czi')]
             
@@ -1296,7 +1297,7 @@ if __name__ == '__main__':
         # create_DoseLET(Dose_dir, CBCT, local_tex_dir, cutplanes=cutplanes, mouse=mouse)
         # create_MRI(MRI_dir, CBCT, local_tex_dir, cutplanes, boundaries)
         create_Histology(Histo_dir, CBCT, local_tex_dir, boundaries=boundaries,
-                         bundles=False)
+                         bundles=True)
         
         # Compile tex file
         os.chdir(local_tex_dir)
