@@ -2,3 +2,6 @@
 MRI/MRI_denoising/BM3D/
 MRI/MRI_denoising/NIFTI/
 *.exe
+*.aux
+*.log
+*.out
