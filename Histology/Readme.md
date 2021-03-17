@@ -1,10 +1,15 @@
 # Histology processing
 
-This directory stores all scripts that were used for the bundle registration of adjacent histology-slices. 
+This directory stores all staining protocols and scripts that were used for histological processing and bundle registration of adjacent histology-slices. 
 
-* [Bundle_registration.ijm](https://github.com/jo-mueller/Slice2Volume_Codebase/blob/main/Histology/Bundle_registration.ijm) iterates over all raw images (must be stored in separate directories) and registers them with [Elastix](https://elastix.lumc.nl/) [1, 2]. The script creates downsampled versions of the raw image files. If moving and fixed image are immunofluorescent images, the DAPI channel (present in both) is used to create cell-density masks that are then used for registration. If moving and image are immunofluorescent and immunohistochemical images, respectively, the script creates binary masks for the registration. The registration is then carried out at low resolution and the resulting transformation parameters are adjusted to match the high-resolution images.
-* [SortHistoSlices.py](https://github.com/jo-mueller/Slice2Volume_Codebase/blob/main/Histology/SortHistoSlices.py) is a helper Python-script that takes raw czi (Zeiss Microscopy) images and sorts these images into separate (bundle-wise) directories. For example see script header.
-* [Elastix_parameters.txt](https://github.com/jo-mueller/Slice2Volume_Codebase/blob/main/Histology/elastix_parameters.txt): Elastix-readable parameter file for the similarity-based registration of adjacent histological samples based on downsampled images.
+### Protocols:
+* HE-stain.pdf: Materials and procedures for H&E stain
+* IF staining protocol.pdf: Materials and procedures for IF stain, can be adopted for various markers.
+
+### Scripts:
+* Bundle_registration.ijm: iterates over all raw images (must be stored in separate directories) and registers them with [Elastix](https://elastix.lumc.nl/) [1, 2]. The script creates downsampled versions of the raw image files. If moving and fixed image are immunofluorescent images, the DAPI channel (present in both) is used to create cell-density masks that are then used for registration. If moving and image are immunofluorescent and immunohistochemical images, respectively, the script creates binary masks for the registration. The registration is then carried out at low resolution and the resulting transformation parameters are adjusted to match the high-resolution images.
+* SortHistoSlices.py: is a helper Python-script that takes raw czi (Zeiss Microscopy) images and sorts these images into separate (bundle-wise) directories. For example see script header.
+* Elastix_parameters.txt: Elastix-readable parameter file for the similarity-based registration of adjacent histological samples based on downsampled images.
 
 
 
