@@ -1,0 +1,297 @@
+### TOPAS-Simulation des Setups für die Mausbetrahlung an der ###
+### horizontalen Beamline der UPTD ###
+
+s:Ge/World/Material	= "Air"
+
+d:Ge/World/HLX		= 1.0 m
+
+d:Ge/World/HLY		= 1.0 m
+
+d:Ge/World/HLZ		= 2.0 m
+
+b:Ge/World/Invisible	= "TRUE"
+
+
+s:Ge/PMMAPlatte/Type		= "TsBox"
+
+s:Ge/PMMAPlatte/Parent		= "World"
+
+s:Ge/PMMAPlatte/Material	= "Lucite"
+
+
+### erzeuge PMMA-Transportbox ###
+
+d:Ge/PMMAPlatte/HLX	= 5 cm
+
+d:Ge/PMMAPlatte/HLY	= 5 cm
+
+d:Ge/PMMAPlatte/HLZ	= 1.135 mm
+
+
+### Positionierung der Box in der Welt ###
+
+d:Ge/PMMAPlatte/TransZ	= -1.6935 cm
+
+s:So/PhasespacesourcePMMA/Type                            = "PhaseSpace"
+s:So/PhasespacesourcePMMA/PhaseSpaceFileName              = "PhasespacePMMAASCII4mm"
+s:So/PhasespacesourcePMMA/Component                       = "World"
+#i:So/PhasespacesourcePMMA/PhaseSpaceMultipleUse           = 0
+#i:So/PhasespacesourcePMMA/PhaseSpaceBufferSize            = 1000
+b:So/PhasespacesourcePMMA/PhaseSpaceIncludeEmptyHistories = "False"
+
+
+
+
+##########################################################################
+
+### Plastikfenster hinter 3. Kollimator ###
+
+# nur bei Black6 Maeusen, nicht bei CH3 !!!#
+
+
+#s:Ge/Window/Type	= "TsBox"
+
+#s:Ge/Window/Parent	= "World"
+
+#s:Ge/Window/Material	= "Lucite"
+
+
+### erzeuge Plastikfenster ###
+
+#d:Ge/Window/HLX		= 2.5 cm
+
+#d:Ge/Window/HLY		= 2.5 cm
+
+#d:Ge/Window/HLZ		= 0.069 cm
+
+
+### Positionierung des Plastikfensters in der Welt ###
+
+#d:Ge/Window/TransZ	= -2.33 cm
+
+
+
+##########################################################################
+
+### Transportbox der Maus ###
+
+
+
+#s:Ge/PMMAPlatte/Type		= "TsBox"
+
+#s:Ge/PMMAPlatte/Parent		= "World"
+
+#s:Ge/PMMAPlatte/Material	= "Lucite"
+
+
+### erzeuge PMMA-Transportbox ###
+
+#d:Ge/PMMAPlatte/HLX	= 5 cm
+
+#d:Ge/PMMAPlatte/HLY	= 5 cm
+
+#d:Ge/PMMAPlatte/HLZ	= 1.135 mm
+
+
+### Positionierung der Box in der Welt ###
+
+#d:Ge/PMMAPlatte/TransZ	= -1.6935 cm
+
+
+
+##########################################################################
+
+### Bett der Maus ###
+
+
+
+### bereits in CT-Daten enthalten ###
+
+### includeFile = ABS.txt ###
+
+### d:Ge/ABSPlatte/TransZ = -0.58 cm ###
+
+
+
+##########################################################################
+
+### CT-Daten der Maus ###
+
+
+
+### Umwandlung der HU in Materialien ###
+### Schneider W., Phys. Med. Biol. 2000; 45(2):459-78 ###
+
+
+# falls CT-Daten: HUtoMaterialSchneider.txt, falls SPR-Daten: Felicia_SPR.txt
+
+
+#includeFile	= HUtoMaterialSchneider.txt
+
+includeFile 	= Felicia_SPR.txt
+
+
+s:Ge/Patient/ImagingtoMaterialConverter = "Schneider"
+
+# b:Ge/Patient/PreLoadAllMaterials 	= "True"
+
+
+
+### Maus = Patient ###
+
+
+s:Ge/Patient/Type		= "TsDicomPatient"
+
+s:Ge/Patient/Parent		= "World"
+
+#s:Ge/Patient/DicomDirectory	= "/home/marc/topas/P2_C3H_M1/Daten/SPR/"
+
+s:Ge/Patient/DicomDirectory     = "/icgc/dkfzlsdf/analysis/OE0172/TMTRR/TopasMC3.5/topas/P2_C3H_M1/Daten/SPR/"
+
+sv:Ge/Patient/DicomModalityTags	= 1 "CT"
+
+
+
+### nur kleinen Bereich der Voxel laden ###
+# i:Ge/Patient/RestrictVoxelsXMin = 46
+
+# i:Ge//RestrictVoxelsYMin =
+
+# i:Ge//RestrictVoxelsZMin =
+
+# i:Ge/Patient/RestrictVoxelsXMax = 426
+
+# i:Ge//RestrictVoxelsYMax =
+
+# i:Ge//RestrictVoxelsZMax =
+
+
+
+### Positionierung der Maus ###
+
+### CT-Groeße: z= 20 mm, x = 47.1 mm, y = 35.1 mm ###
+
+### Positionierung des Zielgebiets: z = 8 mm, x = 25.4 mm, y = 20.90 mm ###
+
+
+d:Ge/Patient/TransX   = 0. m
+
+d:Ge/Patient/TransY   = 2.343 mm
+
+d:Ge/Patient/TransZ   = 16.55 mm # entspricht halber x-Ausdehnung des CT-Bildes
+
+d:Ge/Patient/RotY     = 270 deg
+
+d:Ge/Patient/RotX     = 0.0 deg
+
+d:Ge/Patient/RotZ     = 0 deg
+
+
+
+### Anzeige der CT-Schichten: 1 = erste ###
+
+iv:Gr/Patient/ShowSpecificSlicesZ = 1 1
+
+
+
+##########################################################################
+
+### Scoring ###
+
+
+
+s:Sc/DoseOnCTGridSPR/Quantity                  = "DoseToMedium"
+
+s:Sc/DoseOnCTGridSPR/Component                 = "Patient"
+
+s:Sc/DoseOnCTGridSPR/OutputFile                = "TotalDoseP2_C3H_M1"
+
+b:Sc/DoseOnCTGridSPR/OutputToConsole           = "False"
+
+s:Sc/DoseOnCTGridSPR/IfOutputFileAlreadyExists = "Overwrite"
+
+s:Sc/DoseOnCTGridSPR/OutputType                = "DICOM"
+
+b:Sc/DoseOnCTGridSPR/OutputAfterRun            = "True"
+
+
+s:Sc/LETDoseSPRPr/Quantity        		= "ProtonLET"
+
+s:Sc/LETDoseSPRPr/Component      	        = "Patient"
+
+s:Sc/LETDOSESPRPr/OutputFile                    = "ProtonLETDoseP2_C3H_M1"
+
+s:Sc/LETDoseSPRPr/IfOutputFileAlreadyExists 	= "Overwrite"
+
+b:Sc/LETDoseSPRPr/OutputToConsole 		= "False"
+
+s:Sc/LETDoseSPRPr/OutputType 			= "DICOM"
+
+b:Sc/LETDoseSPRPr/OutputAfterRun                = "True"
+
+
+
+
+
+##########################################################################
+
+### Grafik und sonstige Einstellungen ###
+
+
+
+i:Ts/ShowHistoryCountAtInterval			= 1
+
+b:Ts/ShowHistoryCountOnSingleLine		= "True"
+
+s:Gr/ViewA/Type				        = "OpenGL"
+
+sv:Gr/ViewA/VisibleWorlds			= 1 "All"
+
+i:Gr/ViewA/WindowSizeX				= 1024
+
+i:Gr/ViewA/WindowSizeY				= 768
+
+d:Gr/ViewA/Theta				= 90 deg
+
+d:Gr/ViewA/Phi					= 0 deg
+
+#s:Gr/ViewA/Projection				= "Perspective"
+
+s:Gr/ViewA/Projection				= "Orthogonal"
+
+d:Gr/ViewA/PerspectiveAngle			= 30 deg
+
+u:Gr/ViewA/Zoom					= 1.
+
+b:Gr/ViewA/HiddenLineRemovalForTrajectories	= "True"
+
+b:Gr/ViewA/IncludeAxes				= "True"
+
+d:Gr/ViewA/AxesSize				= 5 cm
+
+
+b:Gr/Enable			= "False"
+
+b:Ge/QuitIfOverlapDetected	= "True"
+
+b:Ts/PauseBeforeSequence 	= "False"
+
+b:Ts/PauseBeforeQuit		= "False"
+
+b:Ts/ShowCPUTime = "True"
+
+
+
+
+
+### Anzahl der simulierten Teilchen ###
+
+#i:So/FBTR1/NumberOfHistoriesInRun	= 1000000000
+
+i:Tf/NumberOfSequentialTimes            = 10
+
+i:Ts/NumberOfThreads	                = 0
+
+#Ts/UseQt = "True"
+
+
