@@ -1,5 +1,4 @@
-### TOPAS-Simulation des Setups für die Mausbetrahlung an der ###
-### horizontalen Beamline der UPTD ###
+### TOPAS-Simulation of mouse irradiation at UPTD fixed beamline ###
 
 s:Ge/World/Material	= "Air"
 
@@ -19,7 +18,7 @@ s:Ge/PMMAPlatte/Parent		= "World"
 s:Ge/PMMAPlatte/Material	= "Lucite"
 
 
-### erzeuge PMMA-Transportbox ###
+### create PMMA-transportbox ###
 
 d:Ge/PMMAPlatte/HLX	= 5 cm
 
@@ -28,12 +27,12 @@ d:Ge/PMMAPlatte/HLY	= 5 cm
 d:Ge/PMMAPlatte/HLZ	= 1.135 mm
 
 
-### Positionierung der Box in der Welt ###
+### Positioning Box in world ###
 
 d:Ge/PMMAPlatte/TransZ	= -1.6935 cm
 
 s:So/PhasespacesourcePMMA/Type                            = "PhaseSpace"
-s:So/PhasespacesourcePMMA/PhaseSpaceFileName              = "PhasespacePMMAASCII4mmBlack6"
+s:So/PhasespacesourcePMMA/PhaseSpaceFileName              = "PhasespacePMMAASCII4mm"
 s:So/PhasespacesourcePMMA/Component                       = "World"
 #i:So/PhasespacesourcePMMA/PhaseSpaceMultipleUse           = 0
 #i:So/PhasespacesourcePMMA/PhaseSpaceBufferSize            = 1000
@@ -44,9 +43,8 @@ b:So/PhasespacesourcePMMA/PhaseSpaceIncludeEmptyHistories = "False"
 
 ##########################################################################
 
-### Plastikfenster hinter 3. Kollimator ###
-
-# nur bei Black6 Maeusen, nicht bei CH3 !!!#
+### pastic window behind 3rd collimator ###
+# only used for BL6 mice, not for C3H!#
 
 
 #s:Ge/Window/Type	= "TsBox"
@@ -56,7 +54,7 @@ b:So/PhasespacesourcePMMA/PhaseSpaceIncludeEmptyHistories = "False"
 #s:Ge/Window/Material	= "Lucite"
 
 
-### erzeuge Plastikfenster ###
+### create plastic window ###
 
 #d:Ge/Window/HLX		= 2.5 cm
 
@@ -65,7 +63,7 @@ b:So/PhasespacesourcePMMA/PhaseSpaceIncludeEmptyHistories = "False"
 #d:Ge/Window/HLZ		= 0.069 cm
 
 
-### Positionierung des Plastikfensters in der Welt ###
+### Positioning plastic window in world ###
 
 #d:Ge/Window/TransZ	= -2.33 cm
 
@@ -73,7 +71,7 @@ b:So/PhasespacesourcePMMA/PhaseSpaceIncludeEmptyHistories = "False"
 
 ##########################################################################
 
-### Transportbox der Maus ###
+### Mouse transport box ###
 
 
 
@@ -84,7 +82,7 @@ b:So/PhasespacesourcePMMA/PhaseSpaceIncludeEmptyHistories = "False"
 #s:Ge/PMMAPlatte/Material	= "Lucite"
 
 
-### erzeuge PMMA-Transportbox ###
+### create PMMA-transportbox ###
 
 #d:Ge/PMMAPlatte/HLX	= 5 cm
 
@@ -93,7 +91,7 @@ b:So/PhasespacesourcePMMA/PhaseSpaceIncludeEmptyHistories = "False"
 #d:Ge/PMMAPlatte/HLZ	= 1.135 mm
 
 
-### Positionierung der Box in der Welt ###
+### create PMMA-transportbox ###
 
 #d:Ge/PMMAPlatte/TransZ	= -1.6935 cm
 
@@ -101,11 +99,11 @@ b:So/PhasespacesourcePMMA/PhaseSpaceIncludeEmptyHistories = "False"
 
 ##########################################################################
 
-### Bett der Maus ###
+### Mouse bed, central bedding unit ###
 
 
 
-### bereits in CT-Daten enthalten ###
+### provided by CT-data ###
 
 ### includeFile = ABS.txt ###
 
@@ -115,15 +113,15 @@ b:So/PhasespacesourcePMMA/PhaseSpaceIncludeEmptyHistories = "False"
 
 ##########################################################################
 
-### CT-Daten der Maus ###
+### Mouse CT-data ###
 
 
 
-### Umwandlung der HU in Materialien ###
+### Convert Hounsfield units to materials ###
 ### Schneider W., Phys. Med. Biol. 2000; 45(2):459-78 ###
 
 
-# falls CT-Daten: HUtoMaterialSchneider.txt, falls SPR-Daten: Felicia_SPR.txt
+# in case of CT-data:HUtoMaterialSchneider.txt, in case of SPR-Data: Felicia_SPR.txt
 
 
 #includeFile	= HUtoMaterialSchneider.txt
@@ -138,7 +136,7 @@ s:Ge/Patient/ImagingtoMaterialConverter = "Schneider"
 
 
 ### Maus = Patient ###
-
+### Note: Directories listed here need to be changed according to your local file structure ###
 
 s:Ge/Patient/Type		= "TsDicomPatient"
 
@@ -146,13 +144,13 @@ s:Ge/Patient/Parent		= "World"
 
 #s:Ge/Patient/DicomDirectory	= "/home/marc/topas/P1_C3H_M13/Daten/SPR/"
 
-s:Ge/Patient/DicomDirectory     = "/icgc/dkfzlsdf/analysis/OE0172/TMTRR/TopasMC3.5/topas/P2_B6_M1/Daten/SPR/"
+s:Ge/Patient/DicomDirectory     = "/icgc/dkfzlsdf/analysis/OE0172/TMTRR/TopasMC3.5/topas/P2_C3H_M8/Daten/SPR/"
 
 sv:Ge/Patient/DicomModalityTags	= 1 "CT"
 
 
 
-### nur kleinen Bereich der Voxel laden ###
+### load subsection of voxel space ###
 # i:Ge/Patient/RestrictVoxelsXMin = 46
 
 # i:Ge//RestrictVoxelsYMin =
@@ -167,18 +165,18 @@ sv:Ge/Patient/DicomModalityTags	= 1 "CT"
 
 
 
-### Positionierung der Maus ###
+### Position mouse ###
 
-### CT-Groeße: z= 20 mm, x = 47.1 mm, y = 35.1 mm ###
+### CT-Size: z= 20 mm, x = 47.1 mm, y = 35.1 mm ###
 
-### Positionierung des Zielgebiets: z = 8 mm, x = 25.4 mm, y = 20.90 mm ###
+### target region positioning: z = 8 mm, x = 25.4 mm, y = 20.90 mm ###
 
 
 d:Ge/Patient/TransX   = 0. m
 
-d:Ge/Patient/TransY   = 0.314 mm
+d:Ge/Patient/TransY   = 2.1477 mm
 
-d:Ge/Patient/TransZ   = 17.05 mm # entspricht halber x-Ausdehnung des CT-Bildes
+d:Ge/Patient/TransZ   = 16.55 mm # corresponds to 50% of CT array along x-dimension
 
 d:Ge/Patient/RotY     = 270 deg
 
@@ -188,7 +186,7 @@ d:Ge/Patient/RotZ     = 0 deg
 
 
 
-### Anzeige der CT-Schichten: 1 = erste ###
+### CT Slice display 1 = first slice ###
 
 iv:Gr/Patient/ShowSpecificSlicesZ = 1 1
 
@@ -204,7 +202,7 @@ s:Sc/DoseOnCTGridSPR/Quantity                  = "DoseToMedium"
 
 s:Sc/DoseOnCTGridSPR/Component                 = "Patient"
 
-s:Sc/DoseOnCTGridSPR/OutputFile                = "TotalDoseP2_B6_M1"
+s:Sc/DoseOnCTGridSPR/OutputFile                = "TotalDoseP2_C3H_M8"
 
 b:Sc/DoseOnCTGridSPR/OutputToConsole           = "False"
 
@@ -219,7 +217,7 @@ s:Sc/LETDoseSPRPr/Quantity        		= "ProtonLET"
 
 s:Sc/LETDoseSPRPr/Component      	        = "Patient"
 
-s:Sc/LETDOSESPRPr/OutputFile                    = "ProtonLETDoseP2_B6_M1"
+s:Sc/LETDOSESPRPr/OutputFile                    = "ProtonLETDoseP2_C3H_M8"
 
 s:Sc/LETDoseSPRPr/IfOutputFileAlreadyExists 	= "Overwrite"
 
@@ -235,7 +233,7 @@ b:Sc/LETDoseSPRPr/OutputAfterRun                = "True"
 
 ##########################################################################
 
-### Grafik und sonstige Einstellungen ###
+### Grafics and other settings ###
 
 
 
@@ -284,7 +282,7 @@ b:Ts/ShowCPUTime = "True"
 
 
 
-### Anzahl der simulierten Teilchen ###
+### Number of simulated particles ###
 
 #i:So/FBTR1/NumberOfHistoriesInRun	= 1000000000
 
