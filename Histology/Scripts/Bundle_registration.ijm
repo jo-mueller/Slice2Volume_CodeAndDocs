@@ -42,8 +42,8 @@ if (use_batch) {setBatchMode(true);}  // batch mode on/off
 run("CLIJ2 Macro Extensions", "cl_device=[GeForce RTX 3060 Ti]");  //clij2 initialization
 
 // For registration
-Elastix_exe = elastix_dir + "elastix.exe";
-Transformix_exe = elastix_dir + "transformix.exe";
+Elastix_exe = elastix_dir + "/elastix.exe";
+Transformix_exe = elastix_dir + "/transformix.exe";
 
 // variables
 MovingMask = "MovingMask";
@@ -55,167 +55,148 @@ checkInput(paths);
 mice = getFileList(basepath);
 
 // iterate over all animals
-for (m = 0; m < mice.length; m++) {
 
-	// select particular mouse, if desired
-	if(mice[m] != "P2A_C3H_M10/"){
+
+samples = getFileList(basepath);
+
+
+// Iterate over all samples
+for(i=0; i<samples.length; i++){
+	
+	root = basepath + "/" + samples[i];
+	print("Basepath: " + root);
+
+	// Check if sample data is propperly formatted: Has to be directory
+	if (!File.isDirectory(root)) {
+		print("    Error: Directory not found");
+		continue;
+	} else {
+		images = getFileList(root);	
+	}
+
+	// Directories to be skipped are marked by underscore
+	if (startsWith(samples[i], "_")) {
 		continue;
 	}
 
-	samples = getFileList(basepath + mice[m] + "Histology/Slices/");
-
+	// define types of raw stainings
+	HE = "";  // HE staining
+	NOK = "";  //NeuN, OSP, Ki67, DAPI
+	GNI = "";  //GFAP, Nestin, Iba1, DAPI
+	KHM = "";  // Ki-67, HIF1a, MAP2
+	IC = ""; // Iba1, CD45
+	NC = ""; // Nestin, Cas3
+	NGO = ""; // NeuN, GFAP, OSP
 	
-	// Iterate over all samples
-	for(i=0; i<samples.length; i++){
-		
-		root = basepath + mice[m] + "Histology/Slices/" + samples[i];
-		print("Basepath: " + root);
-
-		// Check if sample data is propperly formatted: Has to be directory
-		if (!File.isDirectory(root)) {
-			print("    Error: Directory not found");
-			continue;
-		} else {
-			images = getFileList(root);	
+	// Browse all raw images in this directory
+	for(j=0; j<images.length; j++){
+		// Identify types of staining
+		if (matches(images[j], ".*HE.*")) {
+			HE = images[j];
 		}
 
-		// Directories to be skipped are marked by underscore
-		if (startsWith(samples[i], "_")) {
-			continue;
+		if (matches(images[j], ".*IC.*")) {
+			IC = images[j];
 		}
 
-		// define types of raw stainings
-		HE = "";  // HE staining
-		NOK = "";  //NeuN, OSP, Ki67, DAPI
-		GNI = "";  //GFAP, Nestin, Iba1, DAPI
-		KHM = "";  // Ki-67, HIF1a, MAP2
-		IC = ""; // Iba1, CD45
-		NC = ""; // Nestin, Cas3
-		NGO = ""; // NeuN, GFAP, OSP
-		
-		// Browse all raw images in this directory
-		for(j=0; j<images.length; j++){
-			// Identify types of staining
-			if (matches(images[j], ".*HE.*")) {
-				HE = images[j];
-			}
-
-			if (matches(images[j], ".*IC.*")) {
-				IC = images[j];
-			}
-
-			if (matches(images[j], ".*KHM.*")) {
-				KHM = images[j];
-			}
-
-			if (matches(images[j], ".*NC.*")) {
-				NC = images[j];
-			}
-
-			if (matches(images[j], ".*NGO.*")) {
-				NGO = images[j];
-			}
-	
-			if (matches(images[j], ".*GNI.*") || matches(images[j], ".*GIN.*")) {
-				GNI = images[j];
-			}
-	
-			if (matches(images[j], ".*NOK.*")) {
-				NOK = images[j];
-			}
-		}
-		print("I Identified these source images:");
-		print("   NOK = " + NOK);
-		print("   HE = " + HE);
-		print("   GNI = " + GNI);
-		print("   IC = " + IC);
-		print("   NC = " + NC);
-		print("   NGO = " + NGO);
-		print("   KHM = " + KHM);
-		
-		// Make directories for output data
-		if (!File.exists(root + "tmp/")) {
-			File.makeDirectory(root + "tmp/");
-		}
-		
-		if (!File.exists(root + "result/")) {
-			File.makeDirectory(root + "result/");
+		if (matches(images[j], ".*KHM.*")) {
+			KHM = images[j];
 		}
 
-		/*
-		// Blueprint
-		if(IDexistsinDir(your_staining_ID, root + "result/")) {
-			print("    your_staining_ID has already been registered - skipping.");
-			continue;
-		} else {
-			RegMain(root, 	moving staining, used magnification, exponent base for image pyramind, 
-							target staining, used magnification, exponent base for image pyramind, mode: can be 'conntour' or intensity');
-		}
-		*/
-		
-		// Check for previous registrations		
-		if(IDexistsinDir("HE", root + "result/")) {
-			RegMain(root, HE, "20x", 2, NOK, "10x", 2, "contour");
-		} else {
-			RegMain(root, HE, "20x", 2, NOK, "10x", 2, "contour");
+		if (matches(images[j], ".*NC.*")) {
+			NC = images[j];
 		}
 
-		/*
-		// Check for previous registrations		
-		if(IDexistsinDir("HE", root + "result/")) {
-			print("    HE has already been registered");
-			print("    Doing it again!");
-			RegMain(root, HE, "20x", 2, GNI, "10x", 2, "contour");
-		} else {
-			RegMain(root, HE, "20x", 2, GNI, "10x", 2, "contour");
-		}
-		*/
-		
-
-		/*
-
-		// Check for previous registrations		
-		if(IDexistsinDir("NOK", root + "result/")) {
-			print("    NOK has already been registered");
-		} else {
-			RegMain(root, NOK, "10x", 2, GNI, "10x", 2, "contour");
-		}
-		*/
-
-		/*
-		// CHeck for previous registrations		
-		if(IDexistsinDir("KHM", root + "result/")) {
-			print("    KHM has already been registered");
-		} else {
-			RegMain(root, KHM, "20x", 2, NGO, "20x", 2, "intensity");
+		if (matches(images[j], ".*NGO.*")) {
+			NGO = images[j];
 		}
 
-		// CHeck for previous registrations		
-		if(IDexistsinDir("NC", root + "result/")) {
-			print("    NC has already been registered");
-		} else {
-			RegMain(root, NC,  "20x", 2, NGO, "20x", 2, "intensity");
+		if (matches(images[j], ".*GNI.*") || matches(images[j], ".*GIN.*")) {
+			GNI = images[j];
 		}
 
-		// CHeck for previous registrations		
-		if(IDexistsinDir("IC", root + "result/")) {
-			print("    IC has already been registered");
-		} else {
-			RegMain(root, IC,  "10x", 2, NGO, "20x", 2, "intensity");
+		if (matches(images[j], ".*NOK.*")) {
+			NOK = images[j];
 		}
-		*/
-		/*
-		// CHeck for previous registrations		
-		if(IDexistsinDir("HE", root + "result/")) {
-			print("    HE has already been registered");
-			print("    Doing it again!");
-			RegMain(root, HE,  "20x", 2, NGO, "20x", 2, "contour");
-		} else {
-			RegMain(root, HE,  "20x", 2, NGO, "20x", 2, "contour");
-		}
-		*/
-		
 	}
+	print("I Identified these source images:");
+	print("   NOK = " + NOK);
+	print("   HE = " + HE);
+	print("   GNI = " + GNI);
+	print("   IC = " + IC);
+	print("   NC = " + NC);
+	print("   NGO = " + NGO);
+	print("   KHM = " + KHM);
+	
+	// Make directories for output data
+	if (!File.exists(root + "tmp/")) {
+		File.makeDirectory(root + "tmp/");
+	}
+	
+	if (!File.exists(root + "result/")) {
+		File.makeDirectory(root + "result/");
+	}
+
+	/*
+	// Blueprint
+	if(IDexistsinDir(your_staining_ID, root + "result/")) {
+		print("    your_staining_ID has already been registered - skipping.");
+		continue;
+	} else {
+		RegMain(root, 	moving staining, used magnification, exponent base for image pyramind, 
+						target staining, used magnification, exponent base for image pyramind, mode: can be 'conntour' or intensity');
+	}
+	*/
+	
+	// Check for previous registrations		
+	if(IDexistsinDir("HE", root + "result/")) {
+		RegMain(root, HE, "20x", 2, GNI, "10x", 2, "contour");
+	} else {
+		RegMain(root, HE, "20x", 2, GNI, "10x", 2, "contour");
+	}
+
+	// Check for previous registrations		
+	if(IDexistsinDir("NOK", root + "result/")) {
+		print("    NOK has already been registered");
+		RegMain(root, NOK, "10x", 2, GNI, "10x", 2, "intensity");
+	} else {
+		RegMain(root, NOK, "10x", 2, GNI, "10x", 2, "intensity");
+	}
+
+
+	/*
+	// CHeck for previous registrations		
+	if(IDexistsinDir("KHM", root + "result/")) {
+		print("    KHM has already been registered");
+	} else {
+		RegMain(root, KHM, "20x", 2, NGO, "20x", 2, "intensity");
+	}
+
+	// CHeck for previous registrations		
+	if(IDexistsinDir("NC", root + "result/")) {
+		print("    NC has already been registered");
+	} else {
+		RegMain(root, NC,  "20x", 2, NGO, "20x", 2, "intensity");
+	}
+
+	// CHeck for previous registrations		
+	if(IDexistsinDir("IC", root + "result/")) {
+		print("    IC has already been registered");
+	} else {
+		RegMain(root, IC,  "10x", 2, NGO, "20x", 2, "intensity");
+	}
+	*/
+	/*
+	// CHeck for previous registrations		
+	if(IDexistsinDir("HE", root + "result/")) {
+		print("    HE has already been registered");
+		print("    Doing it again!");
+		RegMain(root, HE,  "20x", 2, NGO, "20x", 2, "contour");
+	} else {
+		RegMain(root, HE,  "20x", 2, NGO, "20x", 2, "contour");
+	}
+	*/
+	
 }
 
 print("Macro finished!");
@@ -367,7 +348,7 @@ function Stack2Separate(image, outdir, series){
 	}
 
 	if (matches(image, ".*GNI.*") || matches(image, ".*GIN.*")) {
-		labels = newArray("GFAP", "Iba1", "Nestin", "DAPI");
+		labels = newArray("Nestin", "Iba1", "GFAP", "DAPI");
 	}
 	
 	if (matches(image, ".*HE.*")) {
