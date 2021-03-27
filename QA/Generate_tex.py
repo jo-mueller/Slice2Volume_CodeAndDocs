@@ -29,7 +29,7 @@ import subprocess
 from skimage.filters import threshold_triangle
 
 
-from sklearn.metrics import mutual_info_score, normalized_mutual_info_score
+from sklearn.metrics import normalized_mutual_info_score
 
 
 tqdm = partial(tqdm, position=0, leave=True)
@@ -1243,10 +1243,8 @@ if __name__ == '__main__':
     for mouse in mice:
         
         # Let's only do this mouse
-       # if mouse != "P2A_C3H_M3":
-       #     continue
-        # else:
-        #     continue
+        if mouse != "P2A_B6_M1":
+            continue
         
         print(" ", flush=True)
         print(mouse, flush=True)
@@ -1285,19 +1283,18 @@ if __name__ == '__main__':
             
         else:
             Atlas = tf.imread(os.path.join(Atlas_dir, 'DSURQE_40micron_labels_transformed_resliced.tif'))
-            Atlas = np.einsum('ijk->jki', Atlas)
             Atlas[Atlas>0] = 1
+            Atlas = Atlas.transpose((0,2,1))
             
             cutplanes = np.asarray(ndimage.center_of_mass(Atlas), dtype=int)
             
         # copy_and_overwrite(tex_dir, local_tex_dir)
         create_Title(mouse, local_tex_dir)
-        # create_CBCT(CBCT, local_tex_dir, cutplanes=cutplanes)
+        create_CBCT(CBCT, local_tex_dir, cutplanes=cutplanes)
         boundaries = create_Atlas(Atlas_dir, CBCT, local_tex_dir, cutplanes=cutplanes)
         # create_DoseLET(Dose_dir, CBCT, local_tex_dir, cutplanes=cutplanes, mouse=mouse)
         # create_MRI(MRI_dir, CBCT, local_tex_dir, cutplanes, boundaries)
-        create_Histology(Histo_dir, CBCT, local_tex_dir, boundaries=boundaries,
-                         bundles=True)
+        create_Histology(Histo_dir, CBCT, local_tex_dir, boundaries=boundaries)
         
         # Compile tex file
         os.chdir(local_tex_dir)
