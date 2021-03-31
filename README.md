@@ -1,6 +1,6 @@
 # Slice2Volume Code and Docs
 
-This repository hosts all protcols and code that was used to process image data in the Slice2Volume [data repository](https://rodare.hzdr.de/record/801). The Slice2Volume functionality that was used to register histological slices to 3D volumes is maintained in a [separate repository](https://github.com/jo-mueller/Slice2Volume).
+This repository hosts all protcols and code that was used to process image data in the Slice2Volume [data repository](https://rodare.hzdr.de/record/904). The Slice2Volume functionality that was used to register histological slices to 3D volumes is maintained in a [separate repository](https://github.com/jo-mueller/Slice2Volume).
 
 The following aspects are covered by this repository:
 
