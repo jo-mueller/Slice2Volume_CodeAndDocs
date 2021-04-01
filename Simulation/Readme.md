@@ -6,3 +6,5 @@ The simulations can be conducted with the TOPAS software with the SpaceFiles und
 
 * Permatasari, F. F., Eulitz, J., Richter, C., Wohlfahrt, P., & Lühr, A. (2020). Material assignment for proton range prediction in Monte Carlo patient simulations using stopping-power datasets. Iopscience.Iop.Org. https://doi.org/10.1088/1361-6560/ab9702
 * Schneider, W., Bortfeld, T., & Schlegel, W. (2000). Correlation between CT numbers and tissue parameters needed for Monte Carlo simulations of clinical dose distributions. Physics in Medicine and Biology, 45(2), 459–478. https://doi.org/10.1088/0031-9155/45/2/314
+
+The TOPAS-readable PhaseSpace input-file for the simulation is supplied at [RODARE](https://rodare.hzdr.de/record/810)
