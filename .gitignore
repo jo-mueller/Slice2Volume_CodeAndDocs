@@ -5,3 +5,4 @@ MRI/MRI_denoising/NIFTI/
 *.aux
 *.log
 *.out
+*.zip
