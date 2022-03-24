@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Sun Jan 24 13:54:42 2021
 
@@ -19,7 +18,9 @@ from qa_utils import read_CT,\
     create_Atlas,\
     create_Histology,\
     create_DoseLET,\
-    create_MRI
+    create_MRI,\
+    create_Info,\
+    copy_and_overwrite
 
 if __name__ == '__main__':
 
@@ -53,6 +54,7 @@ if __name__ == '__main__':
         MRI_dir = os.path.join(root, mouse, "MRI")
         Dose_dir = os.path.join(root, mouse, "Simulation")
         Histo_dir = os.path.join(root, mouse, "Histology")
+        info_dir = os.path.join(os.getcwd(), 'resources')
 
         if not os.path.exists(CBCT_dir):
             continue
@@ -80,8 +82,9 @@ if __name__ == '__main__':
 
             cutplanes = np.asarray(ndimage.center_of_mass(Atlas), dtype=int)
 
-        # copy_and_overwrite(tex_dir, local_tex_dir)
+        copy_and_overwrite(tex_dir, local_tex_dir)
         create_Title(mouse, local_tex_dir)
+        create_Info(mouse, info_dir, local_tex_dir)
         create_CBCT(CBCT, local_tex_dir, cutplanes=cutplanes)
         boundaries = create_Atlas(Atlas_dir, CBCT, local_tex_dir, cutplanes=cutplanes)
         create_DoseLET(Dose_dir, CBCT, local_tex_dir, cutplanes=cutplanes, mouse=mouse)
