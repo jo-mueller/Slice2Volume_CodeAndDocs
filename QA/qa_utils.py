@@ -15,6 +15,7 @@ import matplotlib.colors as mcolors
 from scipy.ndimage import gaussian_filter
 import subprocess
 from skimage.filters import threshold_triangle
+import pandas as pd
 
 
 from sklearn.metrics import normalized_mutual_info_score
@@ -300,7 +301,19 @@ def multiview_overlay(Array1, Array2=None, **kwargs):
         ax[2].set_title("{:s} \naxial".format(title1), multialignment='center')
         return ax[0].get_figure(), kwargs
 
-def create_info
+def create_Info(mouse: str, info_dir: str, dst: str):
+
+    info = pd.read_csv(os.path.join(info_dir, 'animals.csv'), sep = ';')
+    info = info[info["Animal-code"] == mouse]  # get relevant dataframe row
+
+    info['Dose'] = info['Dose'].astype(str)
+
+    f = os.path.join(dst, "Info.tex")
+    with open(f, 'wt') as file:
+        file.write("\\section{Animal information}\n")
+        for col in info.columns:
+            file.write(f"{latexify(col)}: {latexify(info[col].loc[0])}\\\\\n")
+    file.close()
 
 def create_Title(sample, dst):
     """
