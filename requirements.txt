@@ -2,6 +2,7 @@ numpy
 tifffile
 scikit-image
 scikit-learn
-pydicom
+dicom
 tqdm
 matplotlib
+pandas
