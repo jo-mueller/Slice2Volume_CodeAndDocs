@@ -21,5 +21,6 @@ Then clone the repository using git clone (`git clone https://github.com/jo-muel
 
 ```
 cd path_to_repository/Slice2Volume_CodeAndDocs
+conda install - c conda-forge napari
 pip install -r requirements.txt
 ```
