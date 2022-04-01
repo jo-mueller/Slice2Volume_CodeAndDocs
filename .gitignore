@@ -6,3 +6,4 @@ MRI/MRI_denoising/NIFTI/
 *.log
 *.out
 *.zip
+*.pyc
