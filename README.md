@@ -21,6 +21,8 @@ Then clone the repository using git clone (`git clone https://github.com/jo-muel
 
 ```
 cd path_to_repository/Slice2Volume_CodeAndDocs
-conda install - c conda-forge napari
+conda install - c conda-forge napari jupyterlab
 pip install -r requirements.txt
 ```
+
+To start jupyterlab, type `jupyter-lab` in the command line and navigate to the location of nnotebooks you wish to execute.
