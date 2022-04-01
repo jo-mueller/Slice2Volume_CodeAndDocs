@@ -7,12 +7,16 @@ import matplotlib.pyplot as plt
 import pydicom as dcm
 from functools import partial
 from tqdm import tqdm
+
 import scipy.ndimage as ndimage
 from scipy.signal import find_peaks
 from scipy.stats import ttest_ind
+from scipy.ndimage import gaussian_filter
+from sklearn import metrics
+
 from matplotlib.patches import Rectangle
 import matplotlib.colors as mcolors
-from scipy.ndimage import gaussian_filter
+
 import subprocess
 from skimage.filters import threshold_triangle
 import pandas as pd
@@ -894,20 +898,16 @@ def create_Histology(Histo_dir, CBCT, dst, boundaries, qt=0.9,
 
                 # Calculate Jaccard index or mutual information
                 if np.max(TargetMask) == 255:
-                    U = result + TargetMask
-                    I = np.multiply(result, TargetMask)
 
-                    U[U != 0] = 1
-                    I[I != 0] = 1
-
-                    metric = np.sum(I)/np.sum(U)
-
+                    metric = metrics.jaccard_score((TargetMask != 0).flatten(),
+                                                   (result != 0).flatten())
 
                     caption=latexify("Results of registration of "
                                       "image {:s} (Moving image) to {:s} "
                                       "(Target image). ".format(m_r.split("_to_")[0],
                                                                 m_r.split("_to_")[1]) +
                                       "Jaccard-coefficient $= {:.2f}$".format(metric))
+                    vmax = [255] * 4
                 else:
                     MovingMask = preprocess(MovingMask)
                     TargetMask = preprocess(TargetMask)
@@ -920,19 +920,16 @@ def create_Histology(Histo_dir, CBCT, dst, boundaries, qt=0.9,
                                       "(Target image). ".format(m_r.split("_to_")[0],
                                                               m_r.split("_to_")[1]) +
                                       "$MI_{{norm}}$ = {:.2f}".format(metric))
+                    vmax = [np.quantile(img, qt) for img in [MovingMask, result, TargetMask]]
                 Q_matrix[staining_m[1], s] = metric
-
-                MovingMask = np.ma.masked_where(MovingMask == 0, MovingMask)
-                TargetMask = np.ma.masked_where(TargetMask == 0, TargetMask)
-                result = np.ma.masked_where(result == 0, result)
 
                 fig, ax = plt.subplots(nrows=1, ncols=4, figsize=(12,3))
 
-                ax[0].imshow(MovingMask, cmap='Blues', vmin=0, vmax=np.quantile(MovingMask, qt))
-                ax[1].imshow(result, cmap='Blues', vmin=0, vmax=np.quantile(result, qt))
-                ax[2].imshow(TargetMask, cmap='Oranges', vmin=0, vmax=np.quantile(TargetMask, qt))
-                ax[3].imshow(TargetMask, cmap='Oranges', vmin=0, vmax=np.quantile(TargetMask, qt), alpha=0.5)
-                ax[3].imshow(result, cmap='Blues', vmin=0, vmax=np.quantile(result, qt), alpha=0.5)
+                ax[0].imshow(MovingMask, cmap='Blues', vmin=0, vmax=vmax[0])
+                ax[1].imshow(result, cmap='Blues', vmin=0, vmax=vmax[1])
+                ax[2].imshow(TargetMask, cmap='Oranges', vmin=0, vmax=vmax[2])
+                ax[3].imshow(TargetMask, cmap='Oranges', vmin=0, vmax=vmax[2], alpha=0.5)
+                ax[3].imshow(result, cmap='Blues', vmin=0, vmax=vmax[1], alpha=0.5)
 
                 ax[0].set_title("Moving image")
                 ax[1].set_title("Transf. image")
