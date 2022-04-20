@@ -21,7 +21,13 @@ Then clone the repository using git clone (`git clone https://github.com/jo-muel
 
 ```
 cd path_to_repository/Slice2Volume_CodeAndDocs
+<<<<<<< Updated upstream
 conda install - c conda-forge napari jupyterlab
+=======
+
+conda install -c conda-forge napari
+
+>>>>>>> Stashed changes
 pip install -r requirements.txt
 ```
 
