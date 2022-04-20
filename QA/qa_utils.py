@@ -214,7 +214,7 @@ def get_bounding_box(ndarray, margin=10, perc=0.2):
 def read_CT(directory):
 
     #get CBCT data
-    slices=  os.listdir(directory)
+    slices = os.listdir(directory)
 
     meta = dcm.read_file(os.path.join(directory, slices[0]))
     Array = np.zeros((meta.Rows, meta.Columns, len(slices)))
