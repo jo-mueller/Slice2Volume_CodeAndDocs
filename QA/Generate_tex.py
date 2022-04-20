@@ -2,7 +2,7 @@
 Created on Sun Jan 24 13:54:42 2021
 
 This script browses S2V data directories and creates .tex files
-ttht contain an overview over the contents of each directory.
+that contain an overview over the contents of each directory.
 These overview protocols can then be used for QA.
 """
 import os
