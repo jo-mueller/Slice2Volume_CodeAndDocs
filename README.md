@@ -4,10 +4,10 @@ This repository hosts all protcols and code that was used to process image data 
 
 The following aspects are covered by this repository:
 
-1. Histology: Staining protocols and scripts for bundle registration and image sorting (see subdirectory)
-2. MRI: Scripts for denoising with BM3D, longitudinal registration and image type conversion.
-3. QA: Scripts to auto-generate a LaTeX document with a compilation of all available image data and processing steps for each sample animal.
-4. Simulation: Scripts for Monte-Carlo setup and subsequent zeropadding of raw simulation output to match reference CBCT dimensions.
+1. [Histology](./Histology): Staining protocols and scripts for bundle registration and image sorting (see subdirectory)
+2. [MRI](./MRI): Scripts for denoising with BM3D, longitudinal registration and image type conversion.
+3. [QA](./QA): Scripts to auto-generate a LaTeX document with a compilation of all available image data and processing steps for each sample animal.
+4. [Simulation](./Simulation): Scripts for Monte-Carlo setup and subsequent zeropadding of raw simulation output to match reference CBCT dimensions.
 
 ## Installation
 To install or use the Python-related functionality, install Anaconda as described [here](https://biapol.github.io/blog/johannes_mueller/anaconda_getting_started/) and create a new environment with:
