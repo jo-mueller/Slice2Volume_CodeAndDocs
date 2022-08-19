@@ -28,6 +28,10 @@ if __name__ == '__main__':
     root = "E:\\Promotion\\Projects\\2020_Slice2Volume\\Data\\"
     tex_dir = os.path.join(os.getcwd(), "tex")
 
+    # create empty "Images" directory
+    if not os.path.exists(os.path.join(tex_dir, 'Images')):
+        os.mkdir(os.path.join(tex_dir, 'Images'))
+
     cutplanes = [87, 160, 100]
 
     # Get list of mice
@@ -35,9 +39,9 @@ if __name__ == '__main__':
 
     for mouse in mice:
 
-        # Let's only do this mouse
-        if mouse != "P2A_B6_M1":
-            continue
+        # # Let's only do this mouse
+        # if mouse != "P2A_B6_M1":
+        #     continue
 
         print(" ", flush=True)
         print(mouse, flush=True)
