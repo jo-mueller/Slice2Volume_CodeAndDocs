@@ -591,27 +591,27 @@ def create_MRI(MRI_dir, CBCT, dst, cutplanes, boundaries):
             # To tex
             caption = latexify(', '.join(["Raw and denoised MRI image",
                                           "Timepoint:" + tp,
-                                          "Sequence type: " + seq,
-                                          "Signal-to-noise ratio (raw)$={:.2f}$".format(S2Nr_raw),
-                                          "Signal-to-Noise ratio (denoised) $= {:.2f}$".format(S2Nr_deN)]))
+                                          "Sequence type: " + seq]))
+                                          # "Signal-to-noise ratio (raw)$={:.2f}$".format(S2Nr_raw),
+                                          # "Signal-to-Noise ratio (denoised) $= {:.2f}$".format(S2Nr_deN)]))
             file.write(latex_figure(fig_fname_deN, caption=caption))
-            raw.append(S2Nr_raw)
-            deN.append(S2Nr_deN)
-            Delta_SNR.append(S2Nr_deN - S2Nr_raw)
-        file.write("\\FloatBarrier\n")
-        outp.append("\\noindent\n")
-        outp.append("$SNR_{{raw, {:s}}} = {:.2f} \\pm {:.2f}$".format(
-                seq, np.mean(raw), np.std(raw)) + "\\newline\n")
-        outp.append("$SNR_{{denoised, {:s}}} = {:.2f} \\pm {:.2f}$".format(
-                seq, np.mean(deN), np.std(deN)) + "\\newline\n")
-        test_res = ttest_ind(deN, raw, alternative='greater')
-        outp.append("$SNR_{{denoised, {:s}}} > SNR_{{raw, {:s}}}, ".format(
-                seq, seq) + " (p< {:.1e})$\\newline\n".format(test_res.pvalue))
-        outp.append("$\\Delta SNR = {:.2f} \\pm {:.2f}$\n".format(
-            np.mean(Delta_SNR), np.std(Delta_SNR)))
+            # raw.append(S2Nr_raw)
+            # deN.append(S2Nr_deN)
+            # Delta_SNR.append(S2Nr_deN - S2Nr_raw)
+    #     file.write("\\FloatBarrier\n")
+    #     outp.append("\\noindent\n")
+    #     outp.append("$SNR_{{raw, {:s}}} = {:.2f} \\pm {:.2f}$".format(
+    #             seq, np.mean(raw), np.std(raw)) + "\\newline\n")
+    #     outp.append("$SNR_{{denoised, {:s}}} = {:.2f} \\pm {:.2f}$".format(
+    #             seq, np.mean(deN), np.std(deN)) + "\\newline\n")
+    #     test_res = ttest_ind(deN, raw, alternative='greater')
+    #     outp.append("$SNR_{{denoised, {:s}}} > SNR_{{raw, {:s}}}, ".format(
+    #             seq, seq) + " (p< {:.1e})$\\newline\n".format(test_res.pvalue))
+    #     outp.append("$\\Delta SNR = {:.2f} \\pm {:.2f}$\n".format(
+    #         np.mean(Delta_SNR), np.std(Delta_SNR)))
 
-    # file.write("\\subsubsection{{Signal-to-noise}}")
-        [file.write(out) for out in outp]
+    # # file.write("\\subsubsection{{Signal-to-noise}}")
+    #     [file.write(out) for out in outp]
 
 
 # =============================================================================
